@@ -14,11 +14,25 @@ SilentSafe est un logiciel de protection de la sécurité pour appareils personn
 - Gestion de la quarantaine
 - Protection comportementale (processus / registre / réseau)
 - Détection approfondie des injections (ETW-TI)
-- Expérience à la Kaspersky : protection activée par défaut, uniquement les résultats, détails techniques masqués
+- Protection activée par défaut ; l'interface n'affiche que les résultats et masque les détails techniques
 
 ## Pile technologique
 
 Python + PySide6 + QFluentWidgets + moteur d'analyse C++ + extension d'accélération Rust
+
+## Architecture
+
+- **Couche UI** : Python + PySide6 + QFluentWidgets ; navigation multipage (Accueil / Conseils / Analyse / Protection / Comportement / Quarantaine / Avis / Paramètres) ; thème clair/sombre et couleur d'accent ; bascule de langue instantanée (zh/en).
+- **Moteur d'analyse** : C++ (SilentSecurityEngine), analyse parallèle multithread, sortie du progrès et des résultats au format JSONL ; modes fichier / dossier / disque complet.
+- **Accélération** : Rust (`ss_rust.pyd`, PyO3) analyse et agrège la sortie JSONL du moteur par lots, environ 3x plus rapide que l'analyse ligne par ligne en Python ; repli automatique sur du Python pur lorsqu'il est absent (sémantique identique).
+- **Surveillance en temps réel** : Windows `ReadDirectoryChangesW` piloté par événements, récursif sur tous les disques fixes ; les menaces de signature confirmées sont supprimées automatiquement et les alertes heuristiques sont mises en quarantaine.
+- **Protection comportementale** : création de processus via ETW (0 latence, derrière `NtCreateProcess` ; repli sur l'analyse périodique si indisponible) ; autorun du registre et connexions sortantes par différence d'instantanés ; les événements portent PID / PID parent / chaîne de comportement.
+- **Service système** : le moteur est enregistré en tant que service Windows (SCM, démarrage automatique) avec une politique de redémarrage en cas d'échec (5 s / 10 s / 60 s) ; découplé du processus UI — la protection continue après la sortie et le SCM le relance si le processus est terminé.
+- **Bac à sable** : les exécutables à haut risque qui échouent à la quarantaine sont automatiquement lancés dans un processus isolé, réévalués selon le comportement échantillonné, puis remis en quarantaine en cas de verdict malveillant.
+- **Vérification de signature** : validation hors ligne d'Authenticode via WinVerifyTrust + extraction du signataire (sans vérification de révocation, sans réseau) ; les signatures valides de Microsoft / Google sont entièrement approuvées, les autres signatures valides sont dégradées en affichant le signataire.
+- **Détection approfondie des injections** : ETW-TI (session noyau AutoLogger, Windows 11).
+- **Modèle de communication** : UI et moteur découplés via JSONL — tube stdout pour les analyses ; en mode service, les événements de surveillance/comportement sont écrits dans des fichiers et lus de manière incrémentale par l'UI.
+- **Quarantaine** : les fichiers sont déplacés vers un répertoire de quarantaine et renommés pour empêcher la ré-exécution ; liste / restauration / suppression pris en charge ; la quarantaine et les journaux sont exclus de l'analyse.
 
 ---
 

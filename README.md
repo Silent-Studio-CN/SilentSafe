@@ -7,16 +7,17 @@ SilentSafe 是一款面向个人设备的系统安全防护软件，由 **Silent
 
 > 本仓库仅用于项目展示，**不包含源代码**。
 
-We offer multilingual support. Below are the languages that have been translated. We apologize for the languages that are not yet supported.
+<details>
+<summary>🌐 Supported Languages</summary>
 
-🌐 Supported Languages
+- `https://github.com/Silent-Studio-CN/SilentSafe/tree/main/en_US`  · English (US)
+- `https://github.com/Silent-Studio-CN/SilentSafe/tree/main/ja-JP`  · 日本語 (日本)
+- `https://github.com/Silent-Studio-CN/SilentSafe/tree/main/ru-RU`  · Русский (Россия)
+- `https://github.com/Silent-Studio-CN/SilentSafe/tree/main/es-ES`  · Español (España)
+- `https://github.com/Silent-Studio-CN/SilentSafe/tree/main/fr-FR`  · Français (France)
+- `https://github.com/Silent-Studio-CN/SilentSafe/tree/main/lzh`  · 文言文
 
-- [en_US](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/en_US) · English (US)
-- [ja-JP](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/ja-JP) · 日本語 (日本)
-- [ru-RU](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/ru-RU) · Русский (Россия)
-- [es-ES](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/es-ES) · Español (España)
-- [fr-FR](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/fr-FR) · Français (France)
-- [lzh](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/lzh) · 文言文
+</details>
 
 ## 功能特点
 
@@ -25,11 +26,25 @@ We offer multilingual support. Below are the languages that have been translated
 - 文件隔离管理
 - 行为防护（进程 / 注册表 / 网络）
 - 深度注入检测（ETW-TI）
-- 卡巴斯基式体验：防护默认全开，只展示结果，隐藏技术细节
+- 防护默认全开，界面只展示处理结果，隐藏技术细节
 
 ## 技术栈
 
 Python + PySide6 + QFluentWidgets + C++ 扫描引擎 + Rust 加速扩展
+
+## 技术架构
+
+- **UI 层**：Python + PySide6 + QFluentWidgets，多页面导航（主页 / 安全建议 / 扫描 / 实时防护 / 行为防护 / 隔离区 / 通知 / 设置），支持亮暗主题与主题色、中英双语即时切换。
+- **扫描引擎**：C++（SilentSecurityEngine），多线程并行扫描，以逐行 JSON（JSONL）流式输出进度与结果；单文件/目录/全盘多模式。
+- **加速扩展**：Rust（`ss_rust.pyd`，PyO3），对引擎 JSONL 输出做批量解析与聚合，相对 Python 逐行解析约 3 倍提速；缺失时自动回退纯 Python 解析，语义一致。
+- **实时监控**：Windows `ReadDirectoryChangesW` 事件驱动，所有固定磁盘递归监听；命中内置签名库的确认威胁自动删除，启发式命中自动隔离。
+- **行为监控**：进程创建用 ETW 事件驱动（0 延迟，对应 `NtCreateProcess`，不可用时自动回退轮询）；注册表自启动与出站网络连接用快照差异检测；事件携带 PID / 父进程 / 行为链。
+- **系统服务**：引擎注册为 Windows 服务（SCM 管理，开机自启），配置失败自动重启策略（5s / 10s / 60s）；防护与 UI 进程解耦，退出软件后防护继续运行，进程被结束后由 SCM 自动拉起。
+- **沙箱**：对隔离失败的高危可执行文件自动送入沙箱进程引爆分析，按采样行为事件二次判定并再次尝试隔离。
+- **签名验证**：WinVerifyTrust 离线 Authenticode 校验 + 签名者提取（不查吊销、不联网）；微软 / 谷歌有效签名完全信任跳过启发式，其余有效签名降级提示并附签名者信息。
+- **深度注入检测**：ETW-TI（AutoLogger 内核会话，Windows 11），消费注入事件并展示拦截战果。
+- **通信模型**：UI 与引擎通过 JSONL 解耦——扫描用 stdout 管道，服务模式下监控/行为事件写入事件文件供 UI 增量轮询。
+- **隔离区**：文件移入隔离目录并重命名防再执行，支持列表 / 恢复 / 删除；隔离区与日志目录被扫描器主动跳过，避免二次误报。
 
 ---
 
