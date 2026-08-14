@@ -12,6 +12,11 @@ We offer multilingual support. Below are the languages that have been translated
 🌐 Supported Languages
 
 - [en_US](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/en_US) · English (US)
+- [ja-JP](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/ja-JP) · 日本語 (日本)
+- [ru-RU](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/ru-RU) · Русский (Россия)
+- [es-ES](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/es-ES) · Español (España)
+- [fr-FR](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/fr-FR) · Français (France)
+- [lzh](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/lzh) · 文言文
 
 ## 功能特点
 
