@@ -7,6 +7,12 @@ SilentSafe 是一款面向个人设备的系统安全防护软件，由 **Silent
 
 > 本仓库仅用于项目展示，**不包含源代码**。
 
+We offer multilingual support. Below are the languages that have been translated. We apologize for the languages that are not yet supported.
+
+🌐 Supported Languages
+
+- [en_US](https://github.com/Silent-Studio-CN/SilentSafe/tree/main/en_US) · English (US)
+
 ## 功能特点
 
 - 文件安全扫描（多线程并行 + Rust 加速扩展）
